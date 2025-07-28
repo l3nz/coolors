@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Screen Wake Lock Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        
+        .status.active {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.inactive {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.unsupported {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .info {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #007bff;
+        }
+        
+        .fallback {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Screen Wake Lock Demo</h1>
+        
+        <div id="status" class="status inactive">
+            Wake Lock: Inactive
+        </div>
+        
+        <button id="requestBtn">Request Wake Lock</button>
+        <button id="releaseBtn" disabled>Release Wake Lock</button>
+        
+        <div class="info">
+            <h3>How it works:</h3>
+            <p>The Screen Wake Lock API prevents your device screen from dimming or locking while your web app is active. This is perfect for apps that need to stay visible, like dashboards, timers, or interactive displays.</p>
+            
+            <p><strong>Browser Support:</strong> Chrome/Edge 84+, Safari 16.4+, Firefox (behind flag)</p>
+        </div>
+        
+        <div class="fallback">
+            <h3>Fallback Methods (for older browsers):</h3>
+            <p>If Wake Lock API isn't supported, you can use these alternatives:</p>
+            <ul>
+                <li><strong>Invisible Video:</strong> Play a tiny, muted, looping video</li>
+                <li><strong>Audio Context:</strong> Play silent audio periodically</li>
+                <li><strong>User Interaction:</strong> Prompt user to tap screen occasionally</li>
+            </ul>
+            
+            <button id="videoFallbackBtn">Try Video Fallback</button>
+            <div id="videoContainer" style="display: none;">
+                <video id="keepAwakeVideo" width="1" height="1" muted loop style="opacity: 0;">
+                    <source src="data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMQAAAAhmcmVlAAAAGW1kYXQAAAKuQW1vaGVhZAAAAz0AAAHcAAABHEVuY29kZWQgd2l0aCBsYXZjNTUuMzEuMTAx" type="video/mp4">
+                </video>
+                <p style="color: #666; font-size: 14px; margin-top: 10px;">Invisible video playing to prevent sleep</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let wakeLock = null;
+        const statusEl = document.getElementById('status');
+        const requestBtn = document.getElementById('requestBtn');
+        const releaseBtn = document.getElementById('releaseBtn');
+        const videoFallbackBtn = document.getElementById('videoFallbackBtn');
+        const videoContainer = document.getElementById('videoContainer');
+        const video = document.getElementById('keepAwakeVideo');
+
+        // Check if Wake Lock API is supported
+        if ('wakeLock' in navigator) {
+            updateStatus('Wake Lock API supported', 'inactive');
+        } else {
+            updateStatus('Wake Lock API not supported - use fallback methods', 'unsupported');
+            requestBtn.disabled = true;
+        }
+
+        // Request wake lock
+        requestBtn.addEventListener('click', async () => {
+            try {
+                wakeLock = await navigator.wakeLock.request('screen');
+                updateStatus('Wake Lock Active - Screen will stay on', 'active');
+                requestBtn.disabled = true;
+                releaseBtn.disabled = false;
+
+                // Listen for wake lock release (happens automatically when tab becomes hidden)
+                wakeLock.addEventListener('release', () => {
+                    updateStatus('Wake Lock Released', 'inactive');
+                    requestBtn.disabled = false;
+                    releaseBtn.disabled = true;
+                });
+
+            } catch (err) {
+                console.error('Failed to request wake lock:', err);
+                updateStatus(`Failed to request wake lock: ${err.message}`, 'inactive');
+            }
+        });
+
+        // Release wake lock
+        releaseBtn.addEventListener('click', () => {
+            if (wakeLock) {
+                wakeLock.release();
+                wakeLock = null;
+            }
+        });
+
+        // Video fallback for older browsers
+        videoFallbackBtn.addEventListener('click', () => {
+            if (videoContainer.style.display === 'none') {
+                video.play();
+                videoContainer.style.display = 'block';
+                videoFallbackBtn.textContent = 'Stop Video Fallback';
+            } else {
+                video.pause();
+                videoContainer.style.display = 'none';
+                videoFallbackBtn.textContent = 'Try Video Fallback';
+            }
+        });
+
+        // Handle visibility change (wake lock is automatically released when tab is hidden)
+        document.addEventListener('visibilitychange', async () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') {
+                // Re-request wake lock when tab becomes visible again
+                try {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    updateStatus('Wake Lock Re-acquired', 'active');
+                } catch (err) {
+                    console.error('Failed to re-acquire wake lock:', err);
+                }
+            }
+        });
+
+        function updateStatus(message, type) {
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+
+        // Show additional info about the current environment
+        console.log('User Agent:', navigator.userAgent);
+        console.log('Wake Lock supported:', 'wakeLock' in navigator);
+    </script>
+</body>
+</html>
