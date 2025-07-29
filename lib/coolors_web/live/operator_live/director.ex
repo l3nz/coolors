@@ -11,11 +11,22 @@ defmodule CoolorsWeb.OperatorLive.Director do
 
   @impl true
   def mount(%{"id" => id} = params, session, socket) do
-    IO.puts(Tools.ii({"MOUNT:", params, session}))
+    IO.puts(Tools.ii({"MOUNT:", params, session, socket}))
+    IO.puts(Tools.ii(socket))
+
+    IO.puts(Tools.ii({":...:", get_connect_info(socket, :uri)}))
 
     PubSub.subscribe(Coolors.PubSub, Tools.pubsub_channel(id))
 
-    url_pagelet = ~p"/pagelet/1234"
+    url_pagelet = "https://34d0f6fab5ce.ngrok-free.app" <> ~p"/pagelet/1234"
+    # uri = %URI{
+    #  scheme: Atom.to_string(conn.scheme),
+    #  host: conn.host,
+    #  port: conn.port,
+    #  path: conn.request_path,
+    #  query: conn.query_string
+    # }
+    # uri_url = URI.to_string(uri)
 
     qr = Tools.pagelet_qr(url_pagelet)
     pagelet_state = PageletSrv.getCurrentState(id)

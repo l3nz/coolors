@@ -4,7 +4,16 @@ defmodule Coolors.Tools do
 
   """
   def ii(o) do
-    inspect(o)
+    inspect(o,
+      # No limit on collection size
+      limit: :infinity,
+      # No limit on string length
+      printable_limit: :infinity,
+      # No line width limit
+      width: :infinity,
+      # Pretty formatting
+      pretty: true
+    )
   end
 
   @doc """
