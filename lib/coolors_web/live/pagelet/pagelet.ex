@@ -5,6 +5,17 @@ defmodule CoolorsWeb.PageletLive.Pagelet do
 
   @impl true
   def mount(_params, _session, socket) do
+    # See https://hexdocs.pm/qr_code/readme.html
+    {:ok, qr} =
+      "https://www.loway.ch"
+      |> QRCode.create(:high)
+      |> QRCode.render()
+      |> QRCode.to_base64()
+
+    socket =
+      socket
+      |> assign(qr_svg: "data:image/svg+xml;base64,#{qr}")
+
     {:ok, socket}
   end
 

@@ -58,11 +58,15 @@ defmodule Coolors.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
-      # plud per leggere IP remoto
+      # plug per leggere IP remoto
       {:remote_ip, "~> 1.0"},
+      # tracks versions
+      {:say_cheez_ex, "~> 0.3.6"},
+      # generate QRs
+      {:qr_code, "~> 3.2.0"},
+      # dev helpers
       {:ex_doc, "~> 0.38.2", only: :dev, runtime: false},
-      {:dialyxir, "~> 1.4", only: :dev, runtime: false},
-      {:say_cheez_ex, "~> 0.3.6"}
+      {:dialyxir, "~> 1.4", only: :dev, runtime: false}
     ]
   end
 
