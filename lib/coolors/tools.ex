@@ -36,4 +36,6 @@ defmodule Coolors.Tools do
   end
 
   def pubsub_channel(pageletId), do: "pagelet_#{pageletId}"
+
+  def now(), do: "now"
 end

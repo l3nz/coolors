@@ -29,14 +29,17 @@ defmodule CoolorsWeb.OperatorLive.Director do
     # uri_url = URI.to_string(uri)
 
     qr = Tools.pagelet_qr(url_pagelet)
-    pagelet_state = PageletSrv.getCurrentState(id)
+    pagelet_state = PageletSrv.getCurrentState(id, false)
+    PageletSrv.refreshSubscribers(id)
 
     socket =
       socket
       |> assign(
         qr_svg: qr,
         pagelet_url: url_pagelet,
-        pagelet_id: id
+        pagelet_id: id,
+        connected_clients: [],
+        connected_directors: []
       )
       |> assign(pagelet_state)
 
@@ -55,7 +58,20 @@ defmodule CoolorsWeb.OperatorLive.Director do
 
   def handle_info({:pagelet_state, new_pagelet_state}, socket) do
     socket = assign(socket, new_pagelet_state)
-    Logger.error("Pagelet: #{Tools.ii(socket.assigns)}")
+    Logger.warning("Director #{Tools.ii(self())}: #{Tools.ii(new_pagelet_state)}")
+
+    {:noreply, socket}
+  end
+
+  def handle_info(
+        {:now_connected, %{directors: connected_directors, clients: connected_clients}},
+        socket
+      ) do
+    socket =
+      assign(socket,
+        connected_clients: connected_clients,
+        connected_directors: connected_directors
+      )
 
     {:noreply, socket}
   end
@@ -72,7 +88,7 @@ defmodule CoolorsWeb.OperatorLive.Director do
     colors = ~w(MistyRose Black Red Green Purple Yellow Olive)
     newColor = Enum.random(colors)
 
-    PageletSrv.set_state_attribute(id, :ps_bg_color, newColor)
+    PageletSrv.setStateAttribute(id, :ps_bg_color, newColor)
 
     {:noreply, socket}
   end

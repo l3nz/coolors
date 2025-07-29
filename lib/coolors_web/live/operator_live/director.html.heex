@@ -1,4 +1,4 @@
-<h1>I am the director of pagelet #{@pagelet_id}</h1>
+<h1>I am the director of pagelet #{@pagelet_id} ({Tools.ii(self())})</h1>
 
 <img src={@qr_svg} />
 
@@ -13,4 +13,5 @@
   Color goes here <p /> Color goes here
 </div>
 
-<hr /> So long....
+<hr /> Connected clients: {Tools.ii(@connected_clients)} <br />
+Connected directors: {Tools.ii(@connected_directors)} <br />

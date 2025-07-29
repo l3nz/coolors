@@ -12,7 +12,7 @@ defmodule CoolorsWeb.PageletLive.Pagelet do
     PubSub.subscribe(Coolors.PubSub, Tools.pubsub_channel(id))
 
     IO.puts(Tools.ii({"MOUNT PAGELET:", params, session}))
-    pagelet_state = PageletSrv.getCurrentState(id)
+    pagelet_state = PageletSrv.getCurrentState(id, true)
 
     socket =
       socket
@@ -38,7 +38,7 @@ defmodule CoolorsWeb.PageletLive.Pagelet do
 
   def handle_info({:pagelet_state, new_pagelet_state}, socket) do
     socket = assign(socket, new_pagelet_state)
-    Logger.error("Pagelet: #{Tools.ii(socket.assigns)}")
+    Logger.warning("Pagelet #{Tools.ii(self())}: #{Tools.ii(new_pagelet_state)}")
 
     {:noreply, socket}
   end
