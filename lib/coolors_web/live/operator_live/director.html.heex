@@ -7,6 +7,9 @@
 <hr />
 
 <button phx-click="new_color">NewColor</button>
+
+<input type="text" phx-blur="msg-changed" phx-value-textid="messaggio" value={@ps_message} />
+
 <hr />
 
 <div style={"background: #{@ps_bg_color}"}>

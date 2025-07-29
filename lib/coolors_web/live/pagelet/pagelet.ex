@@ -1,5 +1,5 @@
 defmodule CoolorsWeb.PageletLive.Pagelet do
-  use CoolorsWeb, :live_view
+  use CoolorsWeb, :live_view_pagelet
 
   alias Coolors.Pagelets
   alias Coolors.Tools
@@ -18,7 +18,8 @@ defmodule CoolorsWeb.PageletLive.Pagelet do
       socket
       |> assign(
         qr_svg: "",
-        pagelet_id: id
+        pagelet_id: id,
+        l_debug: Tools.ii(self())
       )
       |> assign(pagelet_state)
 

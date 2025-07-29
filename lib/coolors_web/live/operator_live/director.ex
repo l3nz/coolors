@@ -84,6 +84,16 @@ defmodule CoolorsWeb.OperatorLive.Director do
     {:noreply, stream_delete(socket, :pagelets, operator)}
   end
 
+  def handle_event(
+        "msg-changed",
+        %{"value" => newMessage},
+        %{assigns: %{pagelet_id: id}} = socket
+      ) do
+    PageletSrv.setStateAttribute(id, :ps_message, newMessage)
+
+    {:noreply, socket}
+  end
+
   def handle_event("new_color", %{"value" => _}, %{assigns: %{pagelet_id: id}} = socket) do
     colors = ~w(MistyRose Black Red Green Purple Yellow Olive)
     newColor = Enum.random(colors)

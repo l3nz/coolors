@@ -59,6 +59,15 @@ defmodule CoolorsWeb do
     end
   end
 
+  def live_view_pagelet do
+    quote do
+      use Phoenix.LiveView,
+        layout: {CoolorsWeb.Layouts, :app_pagelet}
+
+      unquote(html_helpers())
+    end
+  end
+
   def live_component do
     quote do
       use Phoenix.LiveComponent

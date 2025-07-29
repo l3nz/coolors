@@ -1,15 +1,7 @@
-<h1>I am pagelet #{@pagelet_id}</h1>
-
-<img src={@qr_svg} />
-
-<hr />
-
-<div style={"background: #{@ps_bg_color}"}>
-  Color goes here <p /> Color goes here <p /> Color goes here <p /> Color goes here <p />
-  Color goes here <p /> Color goes here <p /> Color goes here <p /> Color goes here <p />
-  Color goes here <p /> Color goes here <p /> Color goes here <p /> Color goes here <p />
-  Color goes here <p /> Color goes here <p /> Color goes here <p /> Color goes here <p />
-  Color goes here <p /> Color goes here <p /> Color goes here <p /> Color goes here <p />
+<div style={"background: #{@ps_bg_color}" } class="fullscreen">
+  <h1>{@ps_message}</h1>
+  <hr />
+  {@l_debug}
 </div>
 
 <hr /> Invisible video here <button id="videoFallbackBtn">Try Video Fallback</button>

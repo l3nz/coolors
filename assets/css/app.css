@@ -3,3 +3,11 @@
 @import "tailwindcss/utilities";
 
 /* This file is for your main application CSS */
+
+
+/* il div delle pagelet */
+.fullscreen {
+    width: 100%;
+    height: 1000px;
+}
+
