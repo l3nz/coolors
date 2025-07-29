@@ -22,6 +22,8 @@ defmodule CoolorsWeb.Router do
     # Editor
     #
 
+    live "/operator/pagelets/director/:id", OperatorLive.Director, :director
+
     live "/operator/pagelets", OperatorLive.Index, :index
     live "/operator/pagelets/new", OperatorLive.Index, :new
     live "/operator/pagelets/:id/edit", OperatorLive.Index, :edit

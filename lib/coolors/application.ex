@@ -10,6 +10,8 @@ defmodule Coolors.Application do
     children = [
       CoolorsWeb.Telemetry,
       Coolors.Repo,
+      # Dynamic supervisor, one per room
+      Coolors.Rooms,
       {DNSCluster, query: Application.get_env(:coolors, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Coolors.PubSub},
       # Start the Finch HTTP client for sending emails
