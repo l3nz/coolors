@@ -1,0 +1,33 @@
+<.header>
+  Operator {@operator.id}
+  <:subtitle>This is a pagelet operator record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/operator/pagelets/#{@operator}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit pagelet operator</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Name">{@operator.name}</:item>
+  <:item title="Owner">{@operator.owner}</:item>
+  <:item title="Secret">{@operator.secret}</:item>
+</.list>
+
+<.back navigate={~p"/operator/pagelets"}>Back to pagelets</.back>
+
+<.modal
+  :if={@live_action == :edit}
+  id="operator-modal"
+  show
+  on_cancel={JS.patch(~p"/operator/pagelets/#{@operator}")}
+>
+  <.live_component
+    module={CoolorsWeb.OperatorLive.FormComponent}
+    id={@operator.id}
+    title={@page_title}
+    action={@live_action}
+    operator={@operator}
+    patch={~p"/operator/pagelets/#{@operator}"}
+  />
+</.modal>

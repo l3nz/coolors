@@ -1,0 +1,48 @@
+<.header>
+  Listing Pagelets
+  <:actions>
+    <.link patch={~p"/operator/pagelets/new"}>
+      <.button>New Operator Pagelet</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="pagelets"
+  rows={@streams.pagelets}
+  row_click={fn {_id, operator} -> JS.navigate(~p"/operator/pagelets/#{operator}") end}
+>
+  <:col :let={{_id, operator}} label="Name">{operator.name}</:col>
+  <:col :let={{_id, operator}} label="Owner">{operator.owner}</:col>
+  <:col :let={{_id, operator}} label="Secret">{operator.secret}</:col>
+  <:action :let={{_id, operator}}>
+    <div class="sr-only">
+      <.link navigate={~p"/operator/pagelets/#{operator}"}>Show</.link>
+    </div>
+    <.link patch={~p"/operator/pagelets/#{operator}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, operator}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: operator.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal
+  :if={@live_action in [:new, :edit]}
+  id="operator-modal"
+  show
+  on_cancel={JS.patch(~p"/operator/pagelets")}
+>
+  <.live_component
+    module={CoolorsWeb.OperatorLive.FormComponent}
+    id={@operator.id || :new}
+    title={@page_title}
+    action={@live_action}
+    operator={@operator}
+    patch={~p"/operator/pagelets"}
+  />
+</.modal>

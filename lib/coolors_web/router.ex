@@ -18,6 +18,21 @@ defmodule CoolorsWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    #
+    # Editor
+    #
+
+    live "/operator/pagelets", OperatorLive.Index, :index
+    live "/operator/pagelets/new", OperatorLive.Index, :new
+    live "/operator/pagelets/:id/edit", OperatorLive.Index, :edit
+
+    live "/operator/pagelets/:id", OperatorLive.Show, :show
+    live "/operator/pagelets/:id/show/edit", OperatorLive.Show, :edit
+
+    #
+    # Pagelet
+    #
+    live "/pagelet/:id", PageletLive.Pagelet, :index
   end
 
   # Other scopes may use custom stacks.
