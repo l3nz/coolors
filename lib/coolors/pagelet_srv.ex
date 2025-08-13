@@ -37,17 +37,20 @@ defmodule Coolors.PageletSrv do
     GenServer.cast(pid, {:refresh_subscriber_pids})
   end
 
+  def default_state(),
+    do: %{
+      ps_bg_color: "black",
+      ps_connected: false,
+      ps_message: ""
+    }
+
   @impl true
   def init(pagelet_id) do
     {:ok,
      %{
        pagelet_id: pagelet_id,
        created_on: "xxxx",
-       pagelet_state: %{
-         ps_bg_color: "black",
-         ps_connected: false,
-         ps_message: ""
-       },
+       pagelet_state: default_state(),
        connected_clients: %{},
        connected_directors: %{}
      }}
@@ -89,10 +92,12 @@ defmodule Coolors.PageletSrv do
         {:set_state_attribute, key, value},
         %{pagelet_id: id, pagelet_state: pagelet_state} = state
       ) do
+    Logger.error("Set state attribute for id #{id}: #{key}=#{value}")
+
     new_pagelet_state = Map.put(pagelet_state, key, value)
 
     channel = Tools.pubsub_channel(id)
-    PubSub.broadcast(Coolors.PubSub, channel, {:pagelet_state, pagelet_state})
+    PubSub.broadcast(Coolors.PubSub, channel, {:pagelet_state, new_pagelet_state})
 
     {:noreply, %{state | pagelet_state: new_pagelet_state}}
   end

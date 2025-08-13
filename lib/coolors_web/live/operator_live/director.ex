@@ -10,15 +10,12 @@ defmodule CoolorsWeb.OperatorLive.Director do
   alias Phoenix.PubSub
 
   @impl true
-  def mount(%{"id" => id} = params, session, socket) do
-    IO.puts(Tools.ii({"MOUNT:", params, session, socket}))
-    IO.puts(Tools.ii(socket))
+  def mount(%{"id" => id} = _params, _session, socket) do
+    Logger.warning("MOUNTING page #{id} as #{Tools.ii(self())}")
 
-    IO.puts(Tools.ii({":...:", get_connect_info(socket, :uri)}))
-
-    PubSub.subscribe(Coolors.PubSub, Tools.pubsub_channel(id))
-
-    url_pagelet = "https://34d0f6fab5ce.ngrok-free.app" <> ~p"/pagelet/1234"
+    # "https://34d0f6fab5ce.ngrok-free.app"
+    external_uri = "http://127.0.0.1:4000"
+    url_pagelet = external_uri <> ~p"/pagelet/1234"
     # uri = %URI{
     #  scheme: Atom.to_string(conn.scheme),
     #  host: conn.host,
@@ -29,8 +26,15 @@ defmodule CoolorsWeb.OperatorLive.Director do
     # uri_url = URI.to_string(uri)
 
     qr = Tools.pagelet_qr(url_pagelet)
-    pagelet_state = PageletSrv.getCurrentState(id, false)
-    PageletSrv.refreshSubscribers(id)
+
+    pagelet_state =
+      if connected?(socket) do
+        Logger.warning("MOUNTING page is connected")
+        PubSub.subscribe(Coolors.PubSub, Tools.pubsub_channel(id))
+        PageletSrv.getCurrentState(id, false)
+      else
+        PageletSrv.default_state()
+      end
 
     socket =
       socket
@@ -52,9 +56,6 @@ defmodule CoolorsWeb.OperatorLive.Director do
   end
 
   @impl true
-  def handle_info({CoolorsWeb.OperatorLive.FormComponent, {:saved, operator}}, socket) do
-    {:noreply, stream_insert(socket, :pagelets, operator)}
-  end
 
   def handle_info({:pagelet_state, new_pagelet_state}, socket) do
     socket = assign(socket, new_pagelet_state)
@@ -95,6 +96,7 @@ defmodule CoolorsWeb.OperatorLive.Director do
   end
 
   def handle_event("new_color", %{"value" => _}, %{assigns: %{pagelet_id: id}} = socket) do
+    Logger.warning("Event new color")
     colors = ~w(MistyRose Black Red Green Purple Yellow Olive)
     newColor = Enum.random(colors)
 

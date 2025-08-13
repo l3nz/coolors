@@ -1,20 +1,35 @@
 <h1>I am the director of pagelet #{@pagelet_id} ({Tools.ii(self())})</h1>
 
-<img src={@qr_svg} />
+<img src={@qr_svg} width="300" height="300" />
 
 <hr /> For {@pagelet_url}
 
 <hr />
 
-<button phx-click="new_color">NewColor</button>
+<button
+  class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+  phx-click="new_color"
+>
+  Random Color
+</button>
 
-<input type="text" phx-blur="msg-changed" phx-value-textid="messaggio" value={@ps_message} />
-
-<hr />
-
-<div style={"background: #{@ps_bg_color}"}>
+<div style={"background: #{@ps_bg_color}"} class="rounded">
   Color goes here <p /> Color goes here
 </div>
+
+<label class="block text-gray-700 text-sm font-bold mb-2" for="messaggio">
+  Message for users
+</label>
+
+<input
+  type="text"
+  id="messaggio"
+  phx-blur="msg-changed"
+  phx-value-textid="messaggio"
+  value={@ps_message}
+/>
+
+<hr />
 
 <hr /> Connected clients: {Tools.ii(@connected_clients)} <br />
 Connected directors: {Tools.ii(@connected_directors)} <br />

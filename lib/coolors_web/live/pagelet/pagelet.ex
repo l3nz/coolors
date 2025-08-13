@@ -8,11 +8,15 @@ defmodule CoolorsWeb.PageletLive.Pagelet do
   require Logger
 
   @impl true
-  def mount(%{"id" => id} = params, session, socket) do
-    PubSub.subscribe(Coolors.PubSub, Tools.pubsub_channel(id))
-
-    IO.puts(Tools.ii({"MOUNT PAGELET:", params, session}))
-    pagelet_state = PageletSrv.getCurrentState(id, true)
+  def mount(%{"id" => id} = _params, _session, socket) do
+    pagelet_state =
+      if connected?(socket) do
+        Logger.error("Pagelet connected #{Tools.ii(self())}")
+        PubSub.subscribe(Coolors.PubSub, Tools.pubsub_channel(id))
+        PageletSrv.getCurrentState(id, true)
+      else
+        PageletSrv.default_state()
+      end
 
     socket =
       socket
