@@ -11,7 +11,7 @@ defmodule CoolorsWeb.OperatorLive.Director do
 
   @impl true
   def mount(%{"id" => id} = _params, _session, socket) do
-    Logger.warning("MOUNTING page #{id} as #{Tools.ii(self())}")
+    Logger.warning("MOUNTING director #{id} as #{Tools.ii(self())}")
 
     # "https://34d0f6fab5ce.ngrok-free.app"
     external_uri = "http://127.0.0.1:4000"
@@ -29,7 +29,7 @@ defmodule CoolorsWeb.OperatorLive.Director do
 
     pagelet_state =
       if connected?(socket) do
-        Logger.warning("MOUNTING page is connected")
+        Logger.warning("MOUNTING director #{id} as #{Tools.ii(self())} is connected")
         PubSub.subscribe(Coolors.PubSub, Tools.pubsub_channel(id))
         PageletSrv.getCurrentState(id, false)
       else
