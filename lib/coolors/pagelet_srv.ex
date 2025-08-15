@@ -2,8 +2,11 @@ defmodule Coolors.PageletSrv do
   use GenServer
   alias Coolors.Tools
   alias Coolors.Rooms
+  alias Coolors.PageletProcess
   alias Phoenix.PubSub
   require Logger
+
+  @type connected_entities :: %{pid() => %PageletProcess{}}
 
   def start_link(pagelet_name) do
     GenServer.start_link(__MODULE__, pagelet_name, name: {:global, pagelet_name})
@@ -49,10 +52,9 @@ defmodule Coolors.PageletSrv do
     {:ok,
      %{
        pagelet_id: pagelet_id,
-       created_on: "xxxx",
+       created_on: Tools.now(),
        pagelet_state: default_state(),
-       connected_clients: %{},
-       connected_directors: %{}
+       connected_clients: %{}
      }}
   end
 
@@ -62,24 +64,21 @@ defmodule Coolors.PageletSrv do
         _from,
         %{
           pagelet_state: pagelet_state,
-          connected_clients: connected_clients,
-          connected_directors: connected_directors
+          connected_clients: connected_clients
         } = state
       ) do
-    {new_connected_clients, new_connected_directors} =
-      case client_type do
-        :pagelet -> {monitor_pagelets(subscriberPid, connected_clients), connected_directors}
-        :director -> {connected_clients, monitor_pagelets(subscriberPid, connected_directors)}
-      end
+    new_connected_clients =
+      monitor_pagelets(
+        subscriberPid,
+        client_type,
+        connected_clients
+      )
 
-    Logger.warning(
-      "Active clients: #{map_size(new_connected_clients)} - dirs: #{map_size(new_connected_directors)}"
-    )
+    Logger.warning("All active clients: #{map_size(new_connected_clients)}")
 
     new_state = %{
       state
-      | connected_clients: new_connected_clients,
-        connected_directors: new_connected_directors
+      | connected_clients: new_connected_clients
     }
 
     update_connected(new_state)
@@ -104,15 +103,13 @@ defmodule Coolors.PageletSrv do
 
   def handle_cast(
         {:refresh_subscriber_pids},
-        %{connected_clients: connected_clients, connected_directors: connected_directors} = state
+        %{connected_clients: connected_clients} = state
       ) do
     new_connected_clients = check_pids(connected_clients)
-    new_connected_directors = check_pids(connected_directors)
 
     new_state = %{
       state
-      | connected_clients: new_connected_clients,
-        connected_directors: new_connected_directors
+      | connected_clients: new_connected_clients
     }
 
     update_connected(new_state)
@@ -122,50 +119,54 @@ defmodule Coolors.PageletSrv do
   @impl true
   def handle_info(
         {:DOWN, _monitor_ref, :process, pid, reason},
-        %{connected_clients: connected_clients, connected_directors: connected_directors} = state
+        %{connected_clients: connected_clients} = state
       ) do
     Logger.warning("Monitored PID #{inspect(pid)} died with reason: #{inspect(reason)}")
 
-    new_state =
-      if Map.has_key?(connected_clients, pid) do
-        new_connected_clients = Map.delete(connected_clients, pid)
+    new_connected_clients = Map.delete(connected_clients, pid)
 
-        Logger.warning("Remaining clients: #{map_size(new_connected_clients)}")
+    Logger.warning("Remaining clients: #{map_size(new_connected_clients)}")
 
-        %{state | connected_clients: new_connected_clients}
-      else
-        new_connected_directors = Map.delete(connected_directors, pid)
-
-        Logger.warning("Remaining directors: #{map_size(new_connected_directors)}")
-
-        %{state | connected_directors: new_connected_directors}
-      end
+    new_state = %{state | connected_clients: new_connected_clients}
 
     update_connected(new_state)
     {:noreply, new_state}
   end
 
-  def monitor_pagelets(pid, connected_clients) do
-    case Map.get(connected_clients, pid, :none) do
-      :none ->
-        with _ = Process.monitor(pid) do
-          Map.put(connected_clients, pid, Tools.now())
-        end
+  @spec monitor_pagelets(pid(), :director | :pagelet, connected_entities()) ::
+          connected_entities()
+  @doc """
+  Given a pid and a map of connected clients {pid() -> pageletprocess()},
+  starts monitoring the PID so we get notified when it dies and
+  returns a new map of connected entities if said pid is not already present.
 
-      _ ->
-        connected_clients
+  """
+
+  def monitor_pagelets(pid, role, connected_clients)
+      when is_pid(pid) and role in [:director, :pagelet] do
+    if Map.get(connected_clients, pid, :none) != :none do
+      connected_clients
+    else
+      # start monitoring process
+      Process.monitor(pid)
+      pp = PageletProcess.build(pid, role)
+      Map.put(connected_clients, pid, pp)
     end
   end
 
   def update_connected(%{
-        connected_clients: connected_clients,
-        connected_directors: connected_directors
+        connected_clients: connected_clients
       }) do
-    msg =
-      {:now_connected,
-       %{directors: Map.keys(connected_directors), clients: Map.keys(connected_clients)}}
+    clients_by_role = PageletProcess.ps_by_role(connected_clients)
+    directors = Map.get(clients_by_role, :director, [])
+    pagelets = Map.get(clients_by_role, :pagelet, [])
 
-    for d <- Map.keys(connected_directors) do
+    Logger.info("UpdateConn: #{Tools.ii(directors)} cli: #{Tools.ii(pagelets)}")
+
+    msg =
+      {:now_connected, %{directors: directors, clients: pagelets}}
+
+    for %PageletProcess{pid: d} <- directors do
       send(d, msg)
     end
   end

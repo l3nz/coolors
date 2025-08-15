@@ -37,5 +37,5 @@ defmodule Coolors.Tools do
 
   def pubsub_channel(pageletId), do: "pagelet_#{pageletId}"
 
-  def now(), do: "now"
+  def now(), do: DateTime.utc_now()
 end

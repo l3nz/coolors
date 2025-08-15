@@ -64,6 +64,8 @@ defmodule Coolors.MixProject do
       {:say_cheez_ex, "~> 0.3.6"},
       # generate QRs
       {:qr_code, "~> 3.2.0"},
+      # sensible structs
+      {:typedstruct, "~> 0.5.3"},
       # dev helpers
       {:ex_doc, "~> 0.38.2", only: :dev, runtime: false},
       {:dialyxir, "~> 1.4", only: :dev, runtime: false}
